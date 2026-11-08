@@ -23,10 +23,19 @@ export const Header: React.FC = () => {
 
   const isScannerActive = location.pathname === APP_ROUTES.SCANNER;
 
+  const pageTitles: Record<string, string> = {
+    [APP_ROUTES.DASHBOARD]: 'Mission Dashboard',
+    [APP_ROUTES.SCANNER]: 'QR Scanner Terminal',
+    [APP_ROUTES.PARTICIPANTS]: 'Participants Roster',
+    [APP_ROUTES.ATTENDANCE]: 'Attendance History',
+    [APP_ROUTES.DESIGN_SYSTEM]: 'Design System & Tokens',
+  };
+  const currentPageTitle = pageTitles[location.pathname] || 'Operations Terminal';
+
   return (
     <header className="sticky top-0 z-30 w-full bg-[#050b1a]/95 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-6 py-2.5">
       <div className="flex items-center justify-between gap-4">
-        {/* Left: Branding & Node Info */}
+        {/* Left: Branding, Node Info & Current Page Title */}
         <div className="flex items-center gap-3">
           {/* Mobile Menu Toggle */}
           <button
@@ -59,6 +68,13 @@ export const Header: React.FC = () => {
               </span>
             </div>
           </Link>
+
+          {/* Current Page Title Badge */}
+          <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-slate-800">
+            <span className="text-xs font-semibold text-slate-200 tracking-wide">
+              {currentPageTitle}
+            </span>
+          </div>
         </div>
 
         {/* Center: Live Telemetry Clock & Station Status (Hidden on small mobile) */}

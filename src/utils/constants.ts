@@ -2,12 +2,15 @@ export const EVENT_DETAILS = {
   NAME: 'NASA Space Apps Challenge',
   SUBTITLE: 'Algiers Local Event',
   YEAR: '2026',
+  DATES: 'November 14–15, 2026',
   LOCATION: 'Algiers, Algeria',
+  VENUE: 'Algiers Innovation & Technology Hub',
   OFFICIAL_URL: 'https://www.spaceappschallenge.org/2026/local-events/algiers/',
   WEBSITE_URL: 'https://nasa-space-app-algiers.vercel.app/',
   TIMEZONE: 'Africa/Algiers',
-  EDITION: 'NASA International Space Apps 2026',
+  EDITION: 'NASA Space Apps Challenge — Algiers 2026',
   TAGLINE: 'Operational Attendance & Telemetry System',
+  STATUS: 'CHECK-IN IN PROGRESS',
 } as const;
 
 export const STORAGE_KEYS = {

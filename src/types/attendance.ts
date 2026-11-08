@@ -6,6 +6,7 @@ export interface AttendanceRecord {
   id: string;
   participantId: string;
   participantName: string;
+  participantCategory?: string;
   qrCode: string;
   action: AttendanceAction;
   timestamp: string;
@@ -23,6 +24,15 @@ export interface ScanResult {
   participant?: Participant;
   timestamp: string;
   rawCode?: string;
+}
+
+export interface DashboardStats {
+  totalParticipants: number;
+  checkedInParticipants: number;
+  checkedOutParticipants: number;
+  notYetCheckedInParticipants: number;
+  attendancePercentage: number;
+  lastUpdated: string;
 }
 
 export interface AttendanceTelemetry {

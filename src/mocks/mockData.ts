@@ -1,6 +1,6 @@
 import type { Organizer } from '../types/auth.ts';
 import type { Participant } from '../types/participant.ts';
-import type { AttendanceRecord } from '../types/attendance.ts';
+import type { AttendanceRecord, DashboardStats } from '../types/attendance.ts';
 
 export const MOCK_ORGANIZERS: Organizer[] = [
   {
@@ -29,6 +29,15 @@ export const MOCK_ORGANIZERS: Organizer[] = [
   },
 ];
 
+export const MOCK_DASHBOARD_STATS: DashboardStats = {
+  totalParticipants: 120,
+  checkedInParticipants: 74,
+  checkedOutParticipants: 12,
+  notYetCheckedInParticipants: 34,
+  attendancePercentage: 71.7, // (74 + 12) / 120 = 71.7% total check-in verification rate
+  lastUpdated: '2026-11-14T11:42:00Z',
+};
+
 export const MOCK_PARTICIPANTS: Participant[] = [
   {
     id: 'part-01',
@@ -38,7 +47,7 @@ export const MOCK_PARTICIPANTS: Participant[] = [
     category: 'hacker',
     qrCode: 'ALG26-HCK-001',
     status: 'checked_in',
-    firstCheckInAt: '2026-10-08T08:45:12Z',
+    firstCheckInAt: '2026-11-14T08:45:12Z',
   },
   {
     id: 'part-02',
@@ -48,7 +57,7 @@ export const MOCK_PARTICIPANTS: Participant[] = [
     category: 'hacker',
     qrCode: 'ALG26-HCK-002',
     status: 'checked_in',
-    firstCheckInAt: '2026-10-08T09:02:40Z',
+    firstCheckInAt: '2026-11-14T09:02:40Z',
   },
   {
     id: 'part-03',
@@ -58,7 +67,7 @@ export const MOCK_PARTICIPANTS: Participant[] = [
     category: 'mentor',
     qrCode: 'ALG26-MTR-001',
     status: 'checked_in',
-    firstCheckInAt: '2026-10-08T08:15:00Z',
+    firstCheckInAt: '2026-11-14T08:15:00Z',
   },
   {
     id: 'part-04',
@@ -78,38 +87,86 @@ export const MOCK_PARTICIPANTS: Participant[] = [
     qrCode: 'ALG26-JDG-001',
     status: 'pending',
   },
+  {
+    id: 'part-06',
+    fullName: 'Rayan Belkacem',
+    email: 'rayan@algiers-spaceapps.dz',
+    teamName: 'Cosmic Rovers',
+    category: 'hacker',
+    qrCode: 'ALG26-HCK-004',
+    status: 'checked_out',
+    firstCheckInAt: '2026-11-14T08:30:10Z',
+    checkOutAt: '2026-11-14T11:20:00Z',
+  },
+  {
+    id: 'part-07',
+    fullName: 'Dr. Leila Zerrouki',
+    email: 'leila@space-jury.dz',
+    teamName: 'Evaluation Panel',
+    category: 'judge',
+    qrCode: 'ALG26-JDG-002',
+    status: 'checked_in',
+    firstCheckInAt: '2026-11-14T09:18:25Z',
+  },
 ];
 
 export const MOCK_ATTENDANCE_LOGS: AttendanceRecord[] = [
   {
     id: 'att-01',
-    participantId: 'part-02',
-    participantName: 'Sara Meziane',
-    qrCode: 'ALG26-HCK-002',
+    participantId: 'part-07',
+    participantName: 'Dr. Leila Zerrouki',
+    participantCategory: 'judge',
+    qrCode: 'ALG26-JDG-002',
     action: 'check-in',
-    timestamp: '2026-10-08T09:02:40Z',
+    timestamp: '2026-11-14T11:38:15Z',
     scannedByOrganizerId: 'org-algiers-01',
     scannedByOrganizerName: 'Amina Mansouri',
     terminalId: 'GATE-01',
   },
   {
     id: 'att-02',
-    participantId: 'part-01',
-    participantName: 'Yacine Brahimi',
-    qrCode: 'ALG26-HCK-001',
-    action: 'check-in',
-    timestamp: '2026-10-08T08:45:12Z',
+    participantId: 'part-06',
+    participantName: 'Rayan Belkacem',
+    participantCategory: 'hacker',
+    qrCode: 'ALG26-HCK-004',
+    action: 'check-out',
+    timestamp: '2026-11-14T11:20:00Z',
     scannedByOrganizerId: 'org-algiers-03',
     scannedByOrganizerName: 'Yasmine Hadj',
     terminalId: 'GATE-03',
   },
   {
     id: 'att-03',
+    participantId: 'part-02',
+    participantName: 'Sara Meziane',
+    participantCategory: 'hacker',
+    qrCode: 'ALG26-HCK-002',
+    action: 'check-in',
+    timestamp: '2026-11-14T09:02:40Z',
+    scannedByOrganizerId: 'org-algiers-01',
+    scannedByOrganizerName: 'Amina Mansouri',
+    terminalId: 'GATE-01',
+  },
+  {
+    id: 'att-04',
+    participantId: 'part-01',
+    participantName: 'Yacine Brahimi',
+    participantCategory: 'hacker',
+    qrCode: 'ALG26-HCK-001',
+    action: 'check-in',
+    timestamp: '2026-11-14T08:45:12Z',
+    scannedByOrganizerId: 'org-algiers-03',
+    scannedByOrganizerName: 'Yasmine Hadj',
+    terminalId: 'GATE-03',
+  },
+  {
+    id: 'att-05',
     participantId: 'part-03',
     participantName: 'Dr. Sofiane Hamadi',
+    participantCategory: 'mentor',
     qrCode: 'ALG26-MTR-001',
     action: 'check-in',
-    timestamp: '2026-10-08T08:15:00Z',
+    timestamp: '2026-11-14T08:15:00Z',
     scannedByOrganizerId: 'org-algiers-02',
     scannedByOrganizerName: 'Karim Bouzid',
     terminalId: 'GATE-02',
