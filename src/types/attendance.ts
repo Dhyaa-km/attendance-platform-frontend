@@ -16,14 +16,32 @@ export interface AttendanceRecord {
   notes?: string;
 }
 
-export type ScanStatus = 'idle' | 'scanning' | 'success' | 'already_checked_in' | 'invalid_code' | 'error';
+export type VerificationStatus = 'success' | 'already_processed' | 'invalid_code' | 'error';
 
-export interface ScanResult {
-  status: ScanStatus;
+export interface ScanVerificationResult {
+  status: VerificationStatus;
+  action: AttendanceAction;
   message: string;
+  explanation?: string;
   participant?: Participant;
   timestamp: string;
-  rawCode?: string;
+  rawCode: string;
+  organizerName?: string;
+  terminalId?: string;
+}
+
+export type CameraPermissionStatus =
+  | 'idle'
+  | 'requesting'
+  | 'granted'
+  | 'denied'
+  | 'no_camera'
+  | 'error'
+  | 'stopped';
+
+export interface CameraDevice {
+  id: string;
+  label: string;
 }
 
 export interface DashboardStats {
