@@ -9,9 +9,14 @@ interface AttendanceProgressProps {
 }
 
 export const AttendanceProgress: React.FC<AttendanceProgressProps> = ({ stats }) => {
-  const checkedInPct = Math.round((stats.checkedInParticipants / stats.totalParticipants) * 100);
-  const checkedOutPct = Math.round((stats.checkedOutParticipants / stats.totalParticipants) * 100);
-  const pendingPct = 100 - checkedInPct - checkedOutPct;
+  const totalParticipants = Math.max(0, stats.totalParticipants);
+  const checkedInPct = totalParticipants
+    ? Math.min(100, Math.round((stats.checkedInParticipants / totalParticipants) * 100))
+    : 0;
+  const checkedOutPct = totalParticipants
+    ? Math.min(100 - checkedInPct, Math.round((stats.checkedOutParticipants / totalParticipants) * 100))
+    : 0;
+  const pendingPct = Math.max(0, 100 - checkedInPct - checkedOutPct);
 
   const totalArrived = stats.checkedInParticipants + stats.checkedOutParticipants;
 

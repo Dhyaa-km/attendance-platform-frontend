@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ParticipantFilters } from './components/ParticipantFilters.tsx';
 import { ParticipantsTable } from './components/ParticipantsTable.tsx';
 import { ParticipantDetailsModal } from './components/ParticipantDetailsModal.tsx';
+import { Alert } from '../../components/ui/Alert.tsx';
+import { Button } from '../../components/ui/Button.tsx';
 import { Card, CardContent } from '../../components/ui/Card.tsx';
 import { Badge } from '../../components/ui/Badge.tsx';
 import {
@@ -20,7 +22,9 @@ export const ParticipantsPage: React.FC = () => {
     checkedOut: 0,
     pending: 0,
   });
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -34,40 +38,39 @@ export const ParticipantsPage: React.FC = () => {
   // Fetch participant records and counts
   useEffect(() => {
     let isMounted = true;
-
-    participantService
-      .getParticipants({
+    const requestKey = JSON.stringify([searchQuery, activeStatus, selectedCategory, loadAttempt]);
+    Promise.all([
+      participantService.getParticipants({
         search: searchQuery,
         status: activeStatus,
         category: selectedCategory,
-      })
-      .then((data) => {
+      }),
+      participantService.getParticipantCounts(),
+    ])
+      .then(([data, totalCounts]) => {
         if (isMounted) {
           setParticipants(data);
-          setIsLoading(false);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
-
-    participantService
-      .getParticipantCounts()
-      .then((totalCounts) => {
-        if (isMounted) {
           setCounts(totalCounts);
+          setLoadError(null);
         }
       })
       .catch(() => {
-        // Fallback
+        if (isMounted) {
+          setParticipants([]);
+          setLoadError('The participant roster could not be loaded. Please retry.');
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoadedRequestKey(requestKey);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [searchQuery, activeStatus, selectedCategory]);
+  }, [searchQuery, activeStatus, selectedCategory, loadAttempt]);
+
+  const isLoading =
+    loadedRequestKey !== JSON.stringify([searchQuery, activeStatus, selectedCategory, loadAttempt]);
 
   const handleOpenDetails = (p: Participant) => {
     setSelectedParticipant(p);
@@ -141,12 +144,27 @@ export const ParticipantsPage: React.FC = () => {
       </div>
 
       {/* 4. Responsive Participants Table & Mobile Cards */}
-      <ParticipantsTable
-        participants={participants}
-        onSelectParticipant={handleOpenDetails}
-        isLoading={isLoading}
-        searchQuery={searchQuery}
-      />
+      {loadError ? (
+        <Alert type="error" title="ROSTER UNAVAILABLE">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>{loadError}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+            >
+              Retry
+            </Button>
+          </div>
+        </Alert>
+      ) : (
+        <ParticipantsTable
+          participants={participants}
+          onSelectParticipant={handleOpenDetails}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+        />
+      )}
 
       {/* 5. Participant Details Modal View */}
       <ParticipantDetailsModal

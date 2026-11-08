@@ -1,4 +1,4 @@
-import type { AttendanceAction, ScanVerificationResult } from '../../../types/attendance.ts';
+import type { AttendanceAction, AttendanceRecord, ScanVerificationResult } from '../../../types/attendance.ts';
 import { MOCK_PARTICIPANTS, MOCK_ATTENDANCE_LOGS, MOCK_DASHBOARD_STATS } from '../../../mocks/mockData.ts';
 import { formatTime } from '../../../utils/formatters.ts';
 
@@ -75,8 +75,23 @@ class MockScanService implements ScanService {
       };
     }
 
+    if (mode === 'check-out' && participant.status !== 'checked_in') {
+      return {
+        status: 'already_processed',
+        action: mode,
+        message: 'Check-In Required',
+        explanation: `${participant.fullName} does not have an active check-in to check out.`,
+        participant: { ...participant },
+        rawCode: cleanCode,
+        timestamp: nowIso,
+        organizerName,
+        terminalId: 'GATE-01',
+      };
+    }
+
     // 3. Process valid check-in / check-out
     if (mode === 'check-in') {
+      const wasCheckedOut = participant.status === 'checked_out';
       participant.status = 'checked_in';
       if (!participant.firstCheckInAt) {
         participant.firstCheckInAt = nowIso;
@@ -85,7 +100,9 @@ class MockScanService implements ScanService {
 
       // Update dashboard telemetry metrics
       MOCK_DASHBOARD_STATS.checkedInParticipants += 1;
-      if (MOCK_DASHBOARD_STATS.notYetCheckedInParticipants > 0) {
+      if (wasCheckedOut && MOCK_DASHBOARD_STATS.checkedOutParticipants > 0) {
+        MOCK_DASHBOARD_STATS.checkedOutParticipants -= 1;
+      } else if (MOCK_DASHBOARD_STATS.notYetCheckedInParticipants > 0) {
         MOCK_DASHBOARD_STATS.notYetCheckedInParticipants -= 1;
       }
     } else {
@@ -109,14 +126,16 @@ class MockScanService implements ScanService {
     );
 
     // 4. Log attendance record
-    const newRecord = {
+    const newRecord: AttendanceRecord = {
       id: `att-${Date.now()}`,
       participantId: participant.id,
       participantName: participant.fullName,
+      participantEmail: participant.email,
       participantCategory: participant.category,
       qrCode: cleanCode,
       action: mode,
       timestamp: nowIso,
+      result: 'success',
       scannedByOrganizerId: organizerId,
       scannedByOrganizerName: organizerName,
       terminalId: 'GATE-01',

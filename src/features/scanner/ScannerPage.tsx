@@ -146,7 +146,7 @@ export const ScannerPage: React.FC = () => {
       {/* Main Camera Viewfinder */}
       <CameraViewfinder
         onCodeDetected={handleProcessCode}
-        isProcessing={isProcessing}
+        isProcessing={isProcessing || isModalOpen}
         soundEnabled={soundEnabled}
       />
 

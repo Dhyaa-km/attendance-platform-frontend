@@ -8,6 +8,11 @@ interface AttendanceStatCardsProps {
 }
 
 export const AttendanceStatCards: React.FC<AttendanceStatCardsProps> = ({ stats }) => {
+  const percentage = (value: number) =>
+    stats.totalParticipants > 0
+      ? Math.round((value / stats.totalParticipants) * 100)
+      : 0;
+
   const cards = [
     {
       id: 'total',
@@ -29,7 +34,7 @@ export const AttendanceStatCards: React.FC<AttendanceStatCardsProps> = ({ stats 
       iconColor: 'text-emerald-400',
       iconBg: 'bg-emerald-950/40 border-emerald-500/30',
       icon: <UserCheck className="w-5 h-5" />,
-      detail: `${Math.round((stats.checkedInParticipants / stats.totalParticipants) * 100)}% of total participants`,
+      detail: `${percentage(stats.checkedInParticipants)}% of total participants`,
     },
     {
       id: 'checked-out',
@@ -40,7 +45,7 @@ export const AttendanceStatCards: React.FC<AttendanceStatCardsProps> = ({ stats 
       iconColor: 'text-sky-400',
       iconBg: 'bg-sky-950/40 border-sky-500/30',
       icon: <UserMinus className="w-5 h-5" />,
-      detail: `${Math.round((stats.checkedOutParticipants / stats.totalParticipants) * 100)}% recorded exits`,
+      detail: `${percentage(stats.checkedOutParticipants)}% recorded exits`,
     },
     {
       id: 'pending',
@@ -51,7 +56,7 @@ export const AttendanceStatCards: React.FC<AttendanceStatCardsProps> = ({ stats 
       iconColor: 'text-amber-400',
       iconBg: 'bg-amber-950/40 border-amber-500/30',
       icon: <Clock className="w-5 h-5" />,
-      detail: `${Math.round((stats.notYetCheckedInParticipants / stats.totalParticipants) * 100)}% pending check-in`,
+      detail: `${percentage(stats.notYetCheckedInParticipants)}% pending check-in`,
     },
   ];
 

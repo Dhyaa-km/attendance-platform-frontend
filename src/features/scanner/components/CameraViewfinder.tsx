@@ -32,6 +32,8 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const isRunningRef = useRef<boolean>(false);
   const isProcessingRef = useRef<boolean>(false);
+  const isMountedRef = useRef<boolean>(true);
+  const onCodeDetectedRef = useRef(onCodeDetected);
   const lastScannedTimeRef = useRef<number>(0);
 
   const [permissionStatus, setPermissionStatus] = useState<CameraPermissionStatus>('idle');
@@ -46,6 +48,10 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
   useEffect(() => {
     isProcessingRef.current = isProcessing;
   }, [isProcessing]);
+
+  useEffect(() => {
+    onCodeDetectedRef.current = onCodeDetected;
+  }, [onCodeDetected]);
 
   // Safe stop scanner instance
   const stopScanner = useCallback(async () => {
@@ -98,7 +104,7 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
           isProcessingRef.current = true;
 
           // Notify parent callback
-          onCodeDetected(decodedText);
+          onCodeDetectedRef.current(decodedText);
         };
 
         const onScanFailure = () => {
@@ -116,6 +122,11 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
           onScanFailure
         );
 
+        if (!isMountedRef.current) {
+          await qrScannerRef.current.stop();
+          return;
+        }
+
         isRunningRef.current = true;
         setIsScanning(true);
         setPermissionStatus('granted');
@@ -130,6 +141,7 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
         }
       } catch (err: unknown) {
         isRunningRef.current = false;
+        if (!isMountedRef.current) return;
         setIsScanning(false);
 
         const errorStr = err instanceof Error ? err.message : String(err);
@@ -147,12 +159,13 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
         }
       }
     },
-    [onCodeDetected, stopScanner]
+    [stopScanner]
   );
 
   // Initialize camera list on mount
   useEffect(() => {
     let isMounted = true;
+    isMountedRef.current = true;
 
     async function initCameras() {
       try {
@@ -195,6 +208,7 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
 
     return () => {
       isMounted = false;
+      isMountedRef.current = false;
       stopScanner();
     };
   }, [startScannerWithDevice, stopScanner]);

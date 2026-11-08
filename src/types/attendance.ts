@@ -1,15 +1,18 @@
 import type { Participant } from './participant.ts';
 
 export type AttendanceAction = 'check-in' | 'check-out';
+export type AttendanceRecordResult = 'success' | 'already_processed' | 'invalid_code' | 'error';
 
 export interface AttendanceRecord {
   id: string;
   participantId: string;
   participantName: string;
+  participantEmail: string;
   participantCategory?: string;
   qrCode: string;
   action: AttendanceAction;
   timestamp: string;
+  result: AttendanceRecordResult;
   scannedByOrganizerId: string;
   scannedByOrganizerName: string;
   terminalId?: string;

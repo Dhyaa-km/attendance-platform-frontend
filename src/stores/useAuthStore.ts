@@ -27,12 +27,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
         isLoading: false,
         error: null,
       });
-    } catch {
+    } catch (err: unknown) {
       set({
         organizer: null,
         isAuthenticated: false,
         isInitialized: true,
         isLoading: false,
+        error:
+          err instanceof Error
+            ? `Unable to restore organizer session: ${err.message}`
+            : 'Unable to restore the organizer session. Please sign in again.',
       });
     }
   },
