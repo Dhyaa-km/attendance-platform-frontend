@@ -12,7 +12,7 @@ export interface GuestRouteProps {
  * to the mission dashboard or previously requested route.
  */
 export const GuestRoute: React.FC<GuestRouteProps> = ({ children }) => {
-  const { isAuthenticated, isInitialized } = useAuthStore();
+  const { organizer, isAuthenticated, isInitialized } = useAuthStore();
   const location = useLocation();
 
   if (!isInitialized) {
@@ -20,9 +20,10 @@ export const GuestRoute: React.FC<GuestRouteProps> = ({ children }) => {
     return null;
   }
 
-  if (isAuthenticated) {
-    const from = (location.state as { from?: { pathname: string } })?.from?.pathname || APP_ROUTES.DASHBOARD;
-    return <Navigate to={from} replace />;
+  if (isAuthenticated && organizer) {
+    const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
+    const targetRoute = organizer.role === 'admin' ? APP_ROUTES.DASHBOARD : APP_ROUTES.SCANNER;
+    return <Navigate to={from || targetRoute} replace />;
   }
 
   return <>{children}</>;

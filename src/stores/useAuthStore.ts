@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Organizer, AuthState, LoginCredentials } from '../types/auth.ts';
 import { authService } from '../features/auth/services/authService.ts';
+import { getStoredAccessToken, getStoredCsrfToken } from '../lib/axios.ts';
 
 interface AuthStore extends AuthState {
   initialize: () => Promise<void>;
@@ -9,30 +10,38 @@ interface AuthStore extends AuthState {
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   organizer: null,
   isAuthenticated: false,
   isLoading: false,
   isInitialized: false,
   error: null,
+  accessToken: null,
+  csrfToken: null,
 
   initialize: async () => {
     try {
       set({ isLoading: true });
       const organizer = await authService.getCurrentSession();
-      set({
+      const nextState = {
         organizer,
         isAuthenticated: Boolean(organizer),
         isInitialized: true,
         isLoading: false,
         error: null,
-      });
+        accessToken: getStoredAccessToken(),
+        csrfToken: getStoredCsrfToken(),
+      };
+
+      set(nextState);
     } catch (err: unknown) {
       set({
         organizer: null,
         isAuthenticated: false,
         isInitialized: true,
         isLoading: false,
+        accessToken: null,
+        csrfToken: null,
         error:
           err instanceof Error
             ? `Unable to restore organizer session: ${err.message}`
@@ -45,11 +54,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const organizer = await authService.login(credentials);
+      const currentState = get();
       set({
         organizer,
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        accessToken: currentState.accessToken ?? getStoredAccessToken(),
+        csrfToken: currentState.csrfToken ?? getStoredCsrfToken(),
       });
       return organizer;
     } catch (err: unknown) {
@@ -62,6 +74,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
         error: errorMessage,
         isAuthenticated: false,
         organizer: null,
+        accessToken: null,
+        csrfToken: null,
       });
       throw new Error(errorMessage, { cause: err });
     }
@@ -77,6 +91,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        accessToken: null,
+        csrfToken: null,
       });
     }
   },

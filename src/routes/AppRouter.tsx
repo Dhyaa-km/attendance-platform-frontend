@@ -42,7 +42,8 @@ const PageLoader: React.FC = () => (
 );
 
 export const AppRouter: React.FC = () => {
-  const { initialize } = useAuthStore();
+  const { initialize, organizer } = useAuthStore();
+  const homeRoute = organizer?.role === 'admin' ? APP_ROUTES.DASHBOARD : APP_ROUTES.SCANNER;
 
   useEffect(() => {
     initialize();
@@ -66,17 +67,52 @@ export const AppRouter: React.FC = () => {
           {/* Protected Operations Platform Shell */}
           <Route
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'organizer']}>
                 <AppLayout />
               </ProtectedRoute>
             }
           >
-            <Route path={APP_ROUTES.HOME} element={<Navigate to={APP_ROUTES.DASHBOARD} replace />} />
-            <Route path={APP_ROUTES.DASHBOARD} element={<DashboardPage />} />
-            <Route path={APP_ROUTES.SCANNER} element={<ScannerPage />} />
-            <Route path={APP_ROUTES.PARTICIPANTS} element={<ParticipantsPage />} />
-            <Route path={APP_ROUTES.ATTENDANCE} element={<AttendancePage />} />
-            <Route path={APP_ROUTES.DESIGN_SYSTEM} element={<DesignSystemPage />} />
+            <Route path={APP_ROUTES.HOME} element={<Navigate to={homeRoute} replace />} />
+            <Route
+              path={APP_ROUTES.DASHBOARD}
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={APP_ROUTES.SCANNER}
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <ScannerPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={APP_ROUTES.PARTICIPANTS}
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <ParticipantsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={APP_ROUTES.ATTENDANCE}
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <AttendancePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={APP_ROUTES.DESIGN_SYSTEM}
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <DesignSystemPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
