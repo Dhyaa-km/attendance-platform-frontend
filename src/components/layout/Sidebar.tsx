@@ -30,7 +30,7 @@ interface NavItem {
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const { sidebarOpen, setSidebarOpen, soundEnabled, toggleSound } = useAppStore();
-  const { logout } = useAuthStore();
+  const { logout, organizer } = useAuthStore();
   const location = useLocation();
 
   const handleLogout = async () => {
@@ -40,11 +40,11 @@ export const Sidebar: React.FC = () => {
   };
 
   const navItems: NavItem[] = [
-    {
+    ...(organizer?.role === 'admin' ? [{
       label: 'Mission Dashboard',
       to: APP_ROUTES.DASHBOARD,
       icon: <LayoutDashboard className="w-4 h-4 shrink-0" />,
-    },
+    }] : []),
     {
       label: 'QR Scanner',
       to: APP_ROUTES.SCANNER,
@@ -52,22 +52,22 @@ export const Sidebar: React.FC = () => {
       badge: 'LIVE',
       isOpsAction: true,
     },
-    {
+    ...(organizer?.role === 'admin' ? [{
       label: 'Participants Roster',
       to: APP_ROUTES.PARTICIPANTS,
       icon: <Users className="w-4 h-4 shrink-0" />,
-    },
+    }] : []),
     {
       label: 'Attendance History',
       to: APP_ROUTES.ATTENDANCE,
       icon: <ClipboardCheck className="w-4 h-4 shrink-0" />,
     },
-    {
+    ...(organizer?.role === 'admin' ? [{
       label: 'Design System & Tokens',
       to: APP_ROUTES.DESIGN_SYSTEM,
       icon: <Palette className="w-4 h-4 shrink-0" />,
       badge: 'v1.0',
-    },
+    }] : []),
   ];
 
   return (

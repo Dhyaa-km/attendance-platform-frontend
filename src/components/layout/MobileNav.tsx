@@ -2,10 +2,13 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { APP_ROUTES } from '../../utils/constants.ts';
 import { cn } from '../../lib/utils.ts';
+import { useAuthStore } from '../../stores/useAuthStore.ts';
 import { LayoutDashboard, QrCode, Users, ClipboardCheck, Sparkles } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
   const location = useLocation();
+  const { organizer } = useAuthStore();
+  const isAdmin = organizer?.role === 'admin';
 
   const isScannerActive = location.pathname === APP_ROUTES.SCANNER;
 
@@ -27,7 +30,7 @@ export const MobileNav: React.FC = () => {
         </NavLink>
 
         {/* Participants */}
-        <NavLink
+        {isAdmin && <NavLink
           to={APP_ROUTES.PARTICIPANTS}
           className={({ isActive }) =>
             cn(
@@ -38,11 +41,11 @@ export const MobileNav: React.FC = () => {
         >
           <Users className="w-5 h-5 mb-0.5" />
           <span>Roster</span>
-        </NavLink>
+        </NavLink>}
 
         {/* Big Center Floating Scanner Action */}
         <div className="relative -top-4">
-          <NavLink
+          {isAdmin && <NavLink
             to={APP_ROUTES.SCANNER}
             className={cn(
               'flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-200 border-2',
@@ -53,7 +56,7 @@ export const MobileNav: React.FC = () => {
             aria-label="Launch QR Scanner"
           >
             <QrCode className="w-7 h-7" />
-          </NavLink>
+          </NavLink>}
         </div>
 
         {/* Attendance Records */}

@@ -76,7 +76,7 @@ export const AppRouter: React.FC = () => {
             <Route
               path={APP_ROUTES.DASHBOARD}
               element={
-                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <DashboardPage />
                 </ProtectedRoute>
               }
@@ -92,7 +92,7 @@ export const AppRouter: React.FC = () => {
             <Route
               path={APP_ROUTES.PARTICIPANTS}
               element={
-                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <ParticipantsPage />
                 </ProtectedRoute>
               }
@@ -108,7 +108,7 @@ export const AppRouter: React.FC = () => {
             <Route
               path={APP_ROUTES.DESIGN_SYSTEM}
               element={
-                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <DesignSystemPage />
                 </ProtectedRoute>
               }
