@@ -12,7 +12,10 @@ import {
   type ParticipantCounts,
 } from './services/participantService.ts';
 import type { Participant } from '../../types/participant.ts';
-import { Users, Database, Shield } from 'lucide-react';
+import { Users, Database, Shield, Upload, UserPlus } from 'lucide-react';
+import { Dialog } from '../../components/ui/Dialog.tsx';
+import { Input } from '../../components/ui/Input.tsx';
+import axios from 'axios';
 
 export const ParticipantsPage: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -34,6 +37,21 @@ export const ParticipantsPage: React.FC = () => {
   // Modal State
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isQrOpen, setIsQrOpen] = useState(false);
+  const [qrImage, setQrImage] = useState<string | null>(null);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createForm, setCreateForm] = useState({
+    fullName: '',
+    studentId: '',
+    email: '',
+    phone: '',
+    category: 'hacker',
+    role: 'participant',
+  });
 
   // Fetch participant records and counts
   useEffect(() => {
@@ -82,6 +100,57 @@ export const ParticipantsPage: React.FC = () => {
     setSelectedParticipant(null);
   };
 
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setIsImporting(true);
+    setImportMessage(null);
+    try {
+      const result = await participantService.importCsv(file);
+      setImportMessage(`Imported ${result.imported} participants. ${result.duplicates} duplicates and ${result.invalid} invalid rows.`);
+      setLoadAttempt((attempt) => attempt + 1);
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message ?? error.message
+        : error instanceof Error
+          ? error.message
+          : 'CSV import failed.';
+      setImportMessage(message);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleShowQr = async (participant: Participant) => {
+    const result = await participantService.getParticipantQr(participant.id);
+    setQrImage(result.qrCodeDataUrl);
+    setSelectedParticipant(participant);
+    setIsQrOpen(true);
+  };
+
+  const handleCreateParticipant = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      const result = await participantService.createParticipant(createForm);
+      setIsCreateOpen(false);
+      setCreateForm({ fullName: '', studentId: '', email: '', phone: '', category: 'hacker', role: 'participant' });
+      setLoadAttempt((attempt) => attempt + 1);
+      setSelectedParticipant(result.data);
+      setQrImage(result.qrCodeDataUrl);
+      setIsQrOpen(true);
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message ?? error.message
+        : error instanceof Error ? error.message : 'Participant creation failed.';
+      setCreateError(message);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Page Header */}
@@ -105,11 +174,33 @@ export const ParticipantsPage: React.FC = () => {
 
         {/* Database Sync Status Indicator */}
         <div className="flex items-center gap-2 self-start sm:self-center">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            leftIcon={<UserPlus className="w-4 h-4" />}
+            onClick={() => {
+              setCreateError(null);
+              setIsCreateOpen(true);
+            }}
+          >
+            Add Participant
+          </Button>
+          <label className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 cursor-pointer">
+            <Upload className="w-4 h-4" />
+            {isImporting ? 'Importing...' : 'Upload CSV'}
+            <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleImport} disabled={isImporting} />
+          </label>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#070e20] border border-slate-800 text-xs font-telemetry text-slate-300">
             <Database className="w-3.5 h-3.5 text-cyan-400" />
             <span>Roster Synchronized</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-950" />
           </div>
+          {importMessage && (
+            <Alert type={importMessage.includes('failed') ? 'error' : 'success'} title="CSV IMPORT">
+              {importMessage}
+            </Alert>
+          )}
         </div>
       </div>
 
@@ -161,6 +252,7 @@ export const ParticipantsPage: React.FC = () => {
         <ParticipantsTable
           participants={participants}
           onSelectParticipant={handleOpenDetails}
+          onShowQr={handleShowQr}
           isLoading={isLoading}
           searchQuery={searchQuery}
         />
@@ -172,6 +264,82 @@ export const ParticipantsPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
+      {selectedParticipant && (
+        <Dialog isOpen={isQrOpen} onClose={() => setIsQrOpen(false)} title="Participant QR Code" maxWidth="sm">
+          <div className="flex flex-col items-center gap-4">
+            {qrImage && <img src={qrImage} alt={`QR code for ${selectedParticipant.fullName}`} className="w-64 h-64 bg-white p-3 rounded-lg" />}
+            <div className="text-center">
+              <p className="font-semibold text-white">{selectedParticipant.fullName}</p>
+              <p className="text-xs text-slate-400 break-all">{selectedParticipant.qrCode}</p>
+            </div>
+          </div>
+        </Dialog>
+      )}
+      <Dialog
+        isOpen={isCreateOpen}
+        onClose={() => {
+          if (!isCreating) setIsCreateOpen(false);
+        }}
+        title="Add participant"
+        description="Create a participant and generate their QR ticket."
+        maxWidth="md"
+      >
+        <form onSubmit={handleCreateParticipant} className="space-y-4">
+          {createError && <Alert type="error" title="PARTICIPANT NOT CREATED">{createError}</Alert>}
+          <Input
+            label="Full name"
+            required
+            value={createForm.fullName}
+            onChange={(event) => setCreateForm({ ...createForm, fullName: event.target.value })}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Student ID"
+              value={createForm.studentId}
+              onChange={(event) => setCreateForm({ ...createForm, studentId: event.target.value })}
+            />
+            <Input
+              label="Email"
+              type="email"
+              value={createForm.email}
+              onChange={(event) => setCreateForm({ ...createForm, email: event.target.value })}
+            />
+            <Input
+              label="Phone"
+              type="tel"
+              value={createForm.phone}
+              onChange={(event) => setCreateForm({ ...createForm, phone: event.target.value })}
+            />
+            <Input
+              label="Role"
+              required
+              placeholder="Participant, organizer, VIP..."
+              value={createForm.role}
+              onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
+            />
+            <label className="space-y-1.5 text-xs font-medium text-slate-300">
+              Category
+              <select
+                value={createForm.category}
+                onChange={(event) => setCreateForm({ ...createForm, category: event.target.value })}
+                className="w-full rounded-lg border border-slate-700/80 bg-[#080f21] px-3.5 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none"
+              >
+                {['hacker', 'mentor', 'judge', 'organizer', 'volunteer', 'vip'].map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} disabled={isCreating}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={isCreating} leftIcon={<UserPlus className="w-4 h-4" />}>
+              Create participant
+            </Button>
+          </div>
+        </form>
+      </Dialog>
     </div>
   );
 };

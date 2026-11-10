@@ -16,6 +16,7 @@ import {
   UserCheck,
   Clock,
   Eye,
+  QrCode,
   SearchX,
   Users,
 } from 'lucide-react';
@@ -23,6 +24,7 @@ import {
 interface ParticipantsTableProps {
   participants: Participant[];
   onSelectParticipant: (participant: Participant) => void;
+  onShowQr: (participant: Participant) => void;
   isLoading: boolean;
   searchQuery: string;
 }
@@ -30,6 +32,7 @@ interface ParticipantsTableProps {
 export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   participants,
   onSelectParticipant,
+  onShowQr,
   isLoading,
   searchQuery,
 }) => {
@@ -105,7 +108,7 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                             </span>
                             <span>•</span>
                             <span className="uppercase text-[10px] font-telemetry text-slate-400">
-                              {p.category}
+                              {p.role || p.category}
                             </span>
                           </div>
                         </div>
@@ -175,6 +178,19 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                       >
                         Details
                       </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onShowQr(p);
+                        }}
+                        leftIcon={<QrCode className="w-3.5 h-3.5" />}
+                        className="text-cyan-400 hover:text-cyan-200"
+                      >
+                        QR
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
@@ -214,7 +230,7 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-telemetry text-slate-400">
                 <div className="flex items-center gap-1 text-[11px]">
                   <span>Role:</span>
-                  <span className="uppercase text-slate-200 font-semibold">{p.category}</span>
+                  <span className="uppercase text-slate-200 font-semibold">{p.role || p.category}</span>
                 </div>
 
                 <Button
@@ -228,6 +244,18 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                   leftIcon={<Eye className="w-3 h-3" />}
                 >
                   View Profile
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowQr(p);
+                  }}
+                  leftIcon={<QrCode className="w-3 h-3" />}
+                >
+                  QR
                 </Button>
               </div>
             </Card>

@@ -10,6 +10,7 @@ export interface Participant {
   phone?: string;
   teamName?: string;
   category: ParticipantCategory;
+  role?: string;
   status: CheckInStatus;
   firstCheckInAt?: string;
   lastCheckInAt?: string;
