@@ -54,17 +54,15 @@ export const LoginForm: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login({
+      const organizer = await login({
         email: data.email,
         password: data.password,
         rememberMe: data.rememberMe,
       });
 
-      // Redirect to the originally intended route or to Dashboard
-      const from =
-        (location.state as { from?: { pathname: string } })?.from?.pathname ||
-        APP_ROUTES.DASHBOARD;
-      navigate(from, { replace: true });
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
+      const fallbackRoute = organizer.role === 'admin' ? APP_ROUTES.DASHBOARD : APP_ROUTES.SCANNER;
+      navigate(from || fallbackRoute, { replace: true });
     } catch {
       // Error handled by store and displayed via Alert
     }

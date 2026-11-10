@@ -28,4 +28,5 @@ export const APP_ROUTES = {
   PARTICIPANTS: '/participants',
   ATTENDANCE: '/attendance',
   DESIGN_SYSTEM: '/design-system',
+  ADMIN_ORGANIZERS: '/admin/organizers',
 } as const;

@@ -1,4 +1,9 @@
-export type OrganizerRole = 'lead_organizer' | 'organizer' | 'technical_lead' | 'scanner_operator';
+export type OrganizerRole =
+  | 'admin'
+  | 'organizer'
+  | 'lead_organizer'
+  | 'technical_lead'
+  | 'scanner_operator';
 
 export interface Organizer {
   id: string;
@@ -16,6 +21,8 @@ export interface AuthState {
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
+  accessToken: string | null;
+  csrfToken: string | null;
 }
 
 export interface LoginCredentials {
