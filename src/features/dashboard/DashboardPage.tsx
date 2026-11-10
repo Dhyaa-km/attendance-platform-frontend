@@ -6,12 +6,18 @@ import { AttendanceProgress } from './components/AttendanceProgress.tsx';
 import { RecentActivitySummary } from './components/RecentActivitySummary.tsx';
 import { dashboardService } from './services/dashboardService.ts';
 import type { DashboardStats, AttendanceRecord } from '../../types/attendance.ts';
-import { MOCK_DASHBOARD_STATS, MOCK_ATTENDANCE_LOGS } from '../../mocks/mockData.ts';
 import { Alert } from '../../components/ui/Alert.tsx';
 
 export const DashboardPage: React.FC = () => {
-  const [stats, setStats] = useState<DashboardStats>(MOCK_DASHBOARD_STATS);
-  const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>(MOCK_ATTENDANCE_LOGS.slice(0, 5));
+  const [stats, setStats] = useState<DashboardStats>({
+    totalParticipants: 0,
+    checkedInParticipants: 0,
+    checkedOutParticipants: 0,
+    notYetCheckedInParticipants: 0,
+    attendancePercentage: 0,
+    lastUpdated: new Date(0).toISOString(),
+  });
+  const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,7 +36,7 @@ export const DashboardPage: React.FC = () => {
         }
       } catch {
         if (isMounted) {
-          setLoadError('Dashboard data could not be refreshed. Showing the available cached values.');
+          setLoadError('Dashboard data could not be loaded from the backend.');
         }
       }
     }

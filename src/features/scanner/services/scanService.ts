@@ -1,10 +1,9 @@
 import type { ScanService } from './mockScanService.ts';
-import { mockScanService } from './mockScanService.ts';
+import { apiScanService } from './apiScanService.ts';
 
 export type { ScanService };
 
 /**
- * Active scanner verification service.
- * In future backend deployment, replace mockScanService with real apiScanService.
+ * Active scanner verification service backed by the local API.
  */
-export const scanService: ScanService = mockScanService;
+export const scanService: ScanService = apiScanService;
