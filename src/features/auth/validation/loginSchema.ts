@@ -8,7 +8,7 @@ export const loginSchema = z.object({
   password: z
     .string()
     .min(1, 'Organizer password is required')
-    .min(6, 'Password must be at least 6 characters in length'),
+    .min(12, 'Password must be at least 12 characters in length'),
   rememberMe: z.boolean().optional(),
 });
 
