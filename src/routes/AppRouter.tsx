@@ -23,8 +23,8 @@ const ParticipantsPage = lazy(() =>
 const AttendancePage = lazy(() =>
   import('../features/attendance/AttendancePage.tsx').then((m) => ({ default: m.AttendancePage }))
 );
-const DesignSystemPage = lazy(() =>
-  import('../features/design-system/DesignSystemPage.tsx').then((m) => ({ default: m.DesignSystemPage }))
+const OrganizersPage = lazy(() =>
+  import('../features/organizers/OrganizersPage.tsx').then((m) => ({ default: m.OrganizersPage }))
 );
 const NotFoundPage = lazy(() =>
   import('../features/common/NotFoundPage.tsx').then((m) => ({ default: m.NotFoundPage }))
@@ -98,18 +98,14 @@ export const AppRouter: React.FC = () => {
               }
             />
             <Route
+              path={APP_ROUTES.ADMIN_ORGANIZERS}
+              element={<ProtectedRoute allowedRoles={['admin']}><OrganizersPage /></ProtectedRoute>}
+            />
+            <Route
               path={APP_ROUTES.ATTENDANCE}
               element={
                 <ProtectedRoute allowedRoles={['admin', 'organizer']}>
                   <AttendancePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={APP_ROUTES.DESIGN_SYSTEM}
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <DesignSystemPage />
                 </ProtectedRoute>
               }
             />

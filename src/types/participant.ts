@@ -6,6 +6,7 @@ export interface Participant {
   id: string;
   qrCode: string;
   fullName: string;
+  studentId?: string;
   email: string;
   phone?: string;
   teamName?: string;

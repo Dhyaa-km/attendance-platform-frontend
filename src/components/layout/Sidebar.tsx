@@ -8,8 +8,8 @@ import {
   LayoutDashboard,
   QrCode,
   Users,
+  UserCog,
   ClipboardCheck,
-  Palette,
   Volume2,
   VolumeX,
   X,
@@ -57,17 +57,16 @@ export const Sidebar: React.FC = () => {
       to: APP_ROUTES.PARTICIPANTS,
       icon: <Users className="w-4 h-4 shrink-0" />,
     }] : []),
+    ...(organizer?.role === 'admin' ? [{
+      label: 'Organizer Accounts',
+      to: APP_ROUTES.ADMIN_ORGANIZERS,
+      icon: <UserCog className="w-4 h-4 shrink-0" />,
+    }] : []),
     {
       label: 'Attendance History',
       to: APP_ROUTES.ATTENDANCE,
       icon: <ClipboardCheck className="w-4 h-4 shrink-0" />,
     },
-    ...(organizer?.role === 'admin' ? [{
-      label: 'Design System & Tokens',
-      to: APP_ROUTES.DESIGN_SYSTEM,
-      icon: <Palette className="w-4 h-4 shrink-0" />,
-      badge: 'v1.0',
-    }] : []),
   ];
 
   return (

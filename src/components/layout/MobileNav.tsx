@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { APP_ROUTES } from '../../utils/constants.ts';
 import { cn } from '../../lib/utils.ts';
 import { useAuthStore } from '../../stores/useAuthStore.ts';
-import { LayoutDashboard, QrCode, Users, ClipboardCheck, Sparkles } from 'lucide-react';
+import { LayoutDashboard, QrCode, Users, ClipboardCheck } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
   const location = useLocation();
@@ -73,19 +73,6 @@ export const MobileNav: React.FC = () => {
           <span>Records</span>
         </NavLink>
 
-        {/* Design System / Tokens */}
-        <NavLink
-          to={APP_ROUTES.DESIGN_SYSTEM}
-          className={({ isActive }) =>
-            cn(
-              'flex flex-col items-center justify-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-colors',
-              isActive ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-            )
-          }
-        >
-          <Sparkles className="w-5 h-5 mb-0.5" />
-          <span>Tokens</span>
-        </NavLink>
       </div>
     </nav>
   );

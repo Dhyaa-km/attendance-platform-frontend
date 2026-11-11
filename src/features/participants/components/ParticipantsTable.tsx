@@ -25,6 +25,8 @@ interface ParticipantsTableProps {
   participants: Participant[];
   onSelectParticipant: (participant: Participant) => void;
   onShowQr: (participant: Participant) => void;
+  onEditParticipant: (participant: Participant) => void;
+  onDeleteParticipant: (participant: Participant) => void;
   isLoading: boolean;
   searchQuery: string;
 }
@@ -33,6 +35,8 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   participants,
   onSelectParticipant,
   onShowQr,
+  onEditParticipant,
+  onDeleteParticipant,
   isLoading,
   searchQuery,
 }) => {
@@ -177,6 +181,12 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                         className="text-slate-400 hover:text-cyan-300"
                       >
                         Details
+                      </Button>
+                      <Button type="button" variant="ghost" size="xs" onClick={(e) => { e.stopPropagation(); onEditParticipant(p); }}>
+                        Edit
+                      </Button>
+                      <Button type="button" variant="ghost" size="xs" onClick={(e) => { e.stopPropagation(); onDeleteParticipant(p); }} className="text-red-400 hover:text-red-300">
+                        Delete
                       </Button>
                       <Button
                         type="button"

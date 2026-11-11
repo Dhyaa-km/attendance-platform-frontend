@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { MainScanningAction } from './components/MainScanningAction.tsx';
 import { AttendanceStatCards } from './components/AttendanceStatCards.tsx';
-import { EventOverviewCard } from './components/EventOverviewCard.tsx';
 import { AttendanceProgress } from './components/AttendanceProgress.tsx';
 import { RecentActivitySummary } from './components/RecentActivitySummary.tsx';
 import { dashboardService } from './services/dashboardService.ts';
 import type { DashboardStats, AttendanceRecord } from '../../types/attendance.ts';
 import { Alert } from '../../components/ui/Alert.tsx';
+import { Link } from 'react-router-dom';
+import { Button } from '../../components/ui/Button.tsx';
+import { APP_ROUTES } from '../../utils/constants.ts';
+import { UserPlus } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -56,24 +59,21 @@ export const DashboardPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* 1. Main Scanning Action - Most Prominent Element */}
-      <MainScanningAction />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <MainScanningAction />
+        <Link to={APP_ROUTES.ADMIN_ORGANIZERS}>
+          <Button variant="secondary" leftIcon={<UserPlus className="w-4 h-4" />}>
+            Add organizer
+          </Button>
+        </Link>
+      </div>
 
       {/* 2. Key Attendance Statistics (Internally Consistent Metrics) */}
       <AttendanceStatCards stats={stats} />
 
-      {/* 3. Operational Sections: Progress, Recent Check-Ins & Event Intelligence */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Progress Bar & Recent Activity Log */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6">
           <AttendanceProgress stats={stats} />
           <RecentActivitySummary records={recentRecords} />
-        </div>
-
-        {/* Right 1 Column: Event Overview & Verified Location Information */}
-        <div className="space-y-6">
-          <EventOverviewCard />
-        </div>
       </div>
     </div>
   );

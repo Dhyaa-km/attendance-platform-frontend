@@ -28,7 +28,6 @@ export const Header: React.FC = () => {
     [APP_ROUTES.SCANNER]: 'QR Scanner Terminal',
     [APP_ROUTES.PARTICIPANTS]: 'Participants Roster',
     [APP_ROUTES.ATTENDANCE]: 'Attendance History',
-    [APP_ROUTES.DESIGN_SYSTEM]: 'Design System & Tokens',
   };
   const currentPageTitle = pageTitles[location.pathname] || 'Operations Terminal';
 

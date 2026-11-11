@@ -56,6 +56,7 @@ function mapParticipant(participant: ApiParticipant): Participant {
     id: participant.id,
     qrCode: participant.token,
     fullName: participant.fullName,
+    studentId: participant.studentId ?? undefined,
     email: participant.email ?? '',
     phone: participant.phone ?? undefined,
     category,
@@ -71,6 +72,8 @@ export interface ParticipantService {
   importCsv(file: File): Promise<ParticipantImportResult>;
   getParticipantQr(id: string): Promise<ParticipantQrResult>;
   createParticipant(input: CreateParticipantInput): Promise<ParticipantQrResult>;
+  updateParticipant(id: string, input: CreateParticipantInput): Promise<Participant>;
+  deleteParticipant(id: string): Promise<void>;
 }
 
 /**
@@ -83,9 +86,11 @@ export const participantService: ParticipantService = {
       params: filters?.search ? { search: filters.search } : undefined,
     });
     const participants = response.data.data.map(mapParticipant);
-    return filters?.status && filters.status !== 'all'
-      ? participants.filter((participant) => participant.status === filters.status)
-      : participants;
+    return participants.filter((participant) => {
+      const matchesStatus = !filters?.status || filters.status === 'all' || participant.status === filters.status;
+      const matchesCategory = !filters?.category || filters.category === 'all' || participant.category === filters.category;
+      return matchesStatus && matchesCategory;
+    });
   },
   async getParticipantById(id) {
     const participants = await this.getParticipants();
@@ -130,5 +135,12 @@ export const participantService: ParticipantService = {
       data: mapParticipant(response.data.data),
       qrCodeDataUrl: response.data.qrCodeDataUrl,
     };
+  },
+  async updateParticipant(id, input) {
+    const response = await apiClient.patch<{ data: ApiParticipant }>(`/participants/${id}`, input);
+    return mapParticipant(response.data.data);
+  },
+  async deleteParticipant(id) {
+    await apiClient.delete(`/participants/${id}`);
   },
 };

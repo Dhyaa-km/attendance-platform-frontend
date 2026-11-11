@@ -42,6 +42,7 @@ export const ParticipantsPage: React.FC = () => {
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState({
@@ -151,6 +152,46 @@ export const ParticipantsPage: React.FC = () => {
     }
   };
 
+  const handleEditParticipant = (participant: Participant) => {
+    setSelectedParticipant(participant);
+    setCreateForm({
+      fullName: participant.fullName,
+      studentId: participant.studentId ?? '',
+      email: participant.email,
+      phone: participant.phone ?? '',
+      category: participant.category,
+      role: participant.role ?? 'participant',
+    });
+    setCreateError(null);
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateParticipant = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedParticipant) return;
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      await participantService.updateParticipant(selectedParticipant.id, createForm);
+      setIsEditOpen(false);
+      setLoadAttempt((attempt) => attempt + 1);
+    } catch (error) {
+      setCreateError(axios.isAxiosError(error) ? error.response?.data?.message ?? error.message : 'Participant update failed.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteParticipant = async (participant: Participant) => {
+    if (!window.confirm(`Delete ${participant.fullName}? This also removes their attendance records.`)) return;
+    try {
+      await participantService.deleteParticipant(participant.id);
+      setLoadAttempt((attempt) => attempt + 1);
+    } catch (error) {
+      setLoadError(axios.isAxiosError(error) ? error.response?.data?.message ?? error.message : 'Participant deletion failed.');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Page Header */}
@@ -253,6 +294,8 @@ export const ParticipantsPage: React.FC = () => {
           participants={participants}
           onSelectParticipant={handleOpenDetails}
           onShowQr={handleShowQr}
+          onEditParticipant={handleEditParticipant}
+          onDeleteParticipant={handleDeleteParticipant}
           isLoading={isLoading}
           searchQuery={searchQuery}
         />
@@ -338,6 +381,19 @@ export const ParticipantsPage: React.FC = () => {
               Create participant
             </Button>
           </div>
+        </form>
+      </Dialog>
+      <Dialog isOpen={isEditOpen} onClose={() => { if (!isCreating) setIsEditOpen(false); }} title="Edit participant" description="Update participant details." maxWidth="md">
+        <form onSubmit={handleUpdateParticipant} className="space-y-4">
+          {createError && <Alert type="error" title="PARTICIPANT NOT UPDATED">{createError}</Alert>}
+          <Input label="Full name" required value={createForm.fullName} onChange={(event) => setCreateForm({ ...createForm, fullName: event.target.value })} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input label="Email" type="email" value={createForm.email} onChange={(event) => setCreateForm({ ...createForm, email: event.target.value })} />
+            <Input label="Phone" value={createForm.phone} onChange={(event) => setCreateForm({ ...createForm, phone: event.target.value })} />
+            <Input label="Role" required value={createForm.role} onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })} />
+            <label className="space-y-1.5 text-xs font-medium text-slate-300">Category<select value={createForm.category} onChange={(event) => setCreateForm({ ...createForm, category: event.target.value })} className="w-full rounded-lg border border-slate-700/80 bg-[#080f21] px-3.5 py-2 text-sm text-slate-100">{['hacker', 'mentor', 'judge', 'organizer', 'volunteer', 'vip'].map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+          </div>
+          <div className="flex justify-end gap-2"><Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)}>Cancel</Button><Button type="submit" isLoading={isCreating}>Save changes</Button></div>
         </form>
       </Dialog>
     </div>

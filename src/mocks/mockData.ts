@@ -1,33 +1,5 @@
-import type { Organizer } from '../types/auth.ts';
 import type { Participant } from '../types/participant.ts';
 import type { AttendanceRecord, DashboardStats } from '../types/attendance.ts';
-
-export const MOCK_ORGANIZERS: Organizer[] = [
-  {
-    id: 'org-algiers-01',
-    name: 'Amina Mansouri',
-    email: 'lead@spaceapps-algiers.dz',
-    role: 'lead_organizer',
-    callsign: 'FLIGHT-LEAD',
-    badgeId: 'NASA-ALG-01',
-  },
-  {
-    id: 'org-algiers-02',
-    name: 'Karim Bouzid',
-    email: 'tech@spaceapps-algiers.dz',
-    role: 'technical_lead',
-    callsign: 'RADAR-01',
-    badgeId: 'NASA-ALG-02',
-  },
-  {
-    id: 'org-algiers-03',
-    name: 'Yasmine Hadj',
-    email: 'ops@spaceapps-algiers.dz',
-    role: 'scanner_operator',
-    callsign: 'SCAN-DELTA',
-    badgeId: 'NASA-ALG-03',
-  },
-];
 
 export const MOCK_DASHBOARD_STATS: DashboardStats = {
   totalParticipants: 120,
