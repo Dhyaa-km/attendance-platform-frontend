@@ -5,7 +5,6 @@ export type ParticipantFilterStatus = 'all' | 'checked_in' | 'checked_out' | 'pe
 export interface ParticipantFilterParams {
   search?: string;
   status?: ParticipantFilterStatus;
-  category?: string;
 }
 export interface ParticipantCounts {
   all: number;
@@ -31,7 +30,6 @@ export interface CreateParticipantInput {
   studentId?: string;
   email?: string;
   phone?: string;
-  category: string;
   role: string;
 }
 
@@ -41,17 +39,12 @@ interface ApiParticipant {
   studentId?: string | null;
   email?: string | null;
   phone?: string | null;
-  category?: string;
   role?: string;
   status: Participant['status'];
   token: string;
 }
 
 function mapParticipant(participant: ApiParticipant): Participant {
-  const categories: Participant['category'][] = ['hacker', 'mentor', 'judge', 'organizer', 'volunteer', 'vip'];
-  const category = categories.includes(participant.category as Participant['category'])
-    ? participant.category as Participant['category']
-    : 'hacker';
   return {
     id: participant.id,
     qrCode: participant.token,
@@ -59,7 +52,6 @@ function mapParticipant(participant: ApiParticipant): Participant {
     studentId: participant.studentId ?? undefined,
     email: participant.email ?? '',
     phone: participant.phone ?? undefined,
-    category,
     role: participant.role ?? 'participant',
     status: participant.status,
   };
@@ -88,8 +80,7 @@ export const participantService: ParticipantService = {
     const participants = response.data.data.map(mapParticipant);
     return participants.filter((participant) => {
       const matchesStatus = !filters?.status || filters.status === 'all' || participant.status === filters.status;
-      const matchesCategory = !filters?.category || filters.category === 'all' || participant.category === filters.category;
-      return matchesStatus && matchesCategory;
+      return matchesStatus;
     });
   },
   async getParticipantById(id) {

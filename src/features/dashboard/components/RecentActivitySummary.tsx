@@ -60,9 +60,9 @@ export const RecentActivitySummary: React.FC<RecentActivitySummaryProps> = ({ re
                   <div className="font-semibold text-slate-100 text-xs">
                     {record.participantName}
                   </div>
-                  {record.participantCategory && (
+                  {record.participantRole && (
                     <span className="text-[10px] uppercase font-telemetry text-slate-400">
-                      {record.participantCategory}
+                      {record.participantRole}
                     </span>
                   )}
                 </TableCell>

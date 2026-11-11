@@ -9,8 +9,6 @@ interface ParticipantFiltersProps {
   onSearchChange: (query: string) => void;
   activeStatus: ParticipantFilterStatus;
   onStatusChange: (status: ParticipantFilterStatus) => void;
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
   counts: ParticipantCounts;
 }
 
@@ -19,8 +17,6 @@ export const ParticipantFilters: React.FC<ParticipantFiltersProps> = ({
   onSearchChange,
   activeStatus,
   onStatusChange,
-  selectedCategory,
-  onCategoryChange,
   counts,
 }) => {
   const statusTabs = [
@@ -50,14 +46,6 @@ export const ParticipantFilters: React.FC<ParticipantFiltersProps> = ({
     },
   ];
 
-  const categories = [
-    { id: 'all', label: 'All Roles' },
-    { id: 'hacker', label: 'Hackers' },
-    { id: 'mentor', label: 'Mentors' },
-    { id: 'judge', label: 'Judges' },
-    { id: 'volunteer', label: 'Volunteers' },
-  ];
-
   return (
     <div className="space-y-4">
       {/* Search Bar & Role Filter Row */}
@@ -84,21 +72,6 @@ export const ParticipantFilters: React.FC<ParticipantFiltersProps> = ({
           />
         </div>
 
-        {/* Role Category Dropdown */}
-        <div className="sm:w-48 shrink-0">
-          <select
-            value={selectedCategory}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            className="w-full bg-[#080f21] border border-slate-700/80 rounded-lg px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-telemetry cursor-pointer"
-            aria-label="Filter by participant role"
-          >
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id} className="bg-[#0b1633] text-slate-200">
-                {cat.label}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       {/* Filter Status Tabs */}

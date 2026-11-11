@@ -1,5 +1,3 @@
-export type ParticipantCategory = 'hacker' | 'mentor' | 'judge' | 'organizer' | 'volunteer' | 'vip';
-
 export type CheckInStatus = 'checked_in' | 'checked_out' | 'pending';
 
 export interface Participant {
@@ -10,8 +8,7 @@ export interface Participant {
   email: string;
   phone?: string;
   teamName?: string;
-  category: ParticipantCategory;
-  role?: string;
+  role: string;
   status: CheckInStatus;
   firstCheckInAt?: string;
   lastCheckInAt?: string;

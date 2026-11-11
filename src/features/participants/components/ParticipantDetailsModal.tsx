@@ -76,7 +76,7 @@ export const ParticipantDetailsModal: React.FC<ParticipantDetailsModalProps> = (
 
             <div className="flex items-center gap-1.5 self-start sm:self-center">
               <Badge variant="telemetry" className="text-[10px]">
-                {participant.category.toUpperCase()}
+                {participant.role.toUpperCase()}
               </Badge>
               {isCheckedIn && <Badge variant="success" withDot pulseDot>CHECKED IN</Badge>}
               {isCheckedOut && <Badge variant="info" withDot>CHECKED OUT</Badge>}

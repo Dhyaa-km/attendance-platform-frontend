@@ -127,7 +127,7 @@ const AttendanceRecordDetails: React.FC<AttendanceRecordDetailsProps> = ({
           <div className="rounded-lg border border-slate-800 bg-[#070e20] p-3">
             <dt className="text-[10px] font-telemetry uppercase text-slate-400">Category / Badge</dt>
             <dd className="mt-1 text-xs text-slate-200">
-              {record.participantCategory || 'Participant'} · {record.qrCode}
+              {record.participantRole || 'Participant'} · {record.qrCode}
             </dd>
           </div>
           <div className="rounded-lg border border-slate-800 bg-[#070e20] p-3">

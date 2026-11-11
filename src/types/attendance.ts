@@ -8,7 +8,7 @@ export interface AttendanceRecord {
   participantId: string;
   participantName: string;
   participantEmail: string;
-  participantCategory?: string;
+  participantRole?: string;
   qrCode: string;
   action: AttendanceAction;
   timestamp: string;

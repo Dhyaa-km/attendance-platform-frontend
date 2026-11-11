@@ -32,7 +32,6 @@ export const ParticipantsPage: React.FC = () => {
   // Filter States
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeStatus, setActiveStatus] = useState<ParticipantFilterStatus>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // Modal State
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
@@ -50,19 +49,17 @@ export const ParticipantsPage: React.FC = () => {
     studentId: '',
     email: '',
     phone: '',
-    category: 'hacker',
     role: 'participant',
   });
 
   // Fetch participant records and counts
   useEffect(() => {
     let isMounted = true;
-    const requestKey = JSON.stringify([searchQuery, activeStatus, selectedCategory, loadAttempt]);
+    const requestKey = JSON.stringify([searchQuery, activeStatus, loadAttempt]);
     Promise.all([
       participantService.getParticipants({
         search: searchQuery,
         status: activeStatus,
-        category: selectedCategory,
       }),
       participantService.getParticipantCounts(),
     ])
@@ -86,10 +83,10 @@ export const ParticipantsPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [searchQuery, activeStatus, selectedCategory, loadAttempt]);
+  }, [searchQuery, activeStatus, loadAttempt]);
 
   const isLoading =
-    loadedRequestKey !== JSON.stringify([searchQuery, activeStatus, selectedCategory, loadAttempt]);
+    loadedRequestKey !== JSON.stringify([searchQuery, activeStatus, loadAttempt]);
 
   const handleOpenDetails = (p: Participant) => {
     setSelectedParticipant(p);
@@ -137,7 +134,7 @@ export const ParticipantsPage: React.FC = () => {
     try {
       const result = await participantService.createParticipant(createForm);
       setIsCreateOpen(false);
-      setCreateForm({ fullName: '', studentId: '', email: '', phone: '', category: 'hacker', role: 'participant' });
+      setCreateForm({ fullName: '', studentId: '', email: '', phone: '',  role: 'participant' });
       setLoadAttempt((attempt) => attempt + 1);
       setSelectedParticipant(result.data);
       setQrImage(result.qrCodeDataUrl);
@@ -159,7 +156,6 @@ export const ParticipantsPage: React.FC = () => {
       studentId: participant.studentId ?? '',
       email: participant.email,
       phone: participant.phone ?? '',
-      category: participant.category,
       role: participant.role ?? 'participant',
     });
     setCreateError(null);
@@ -253,8 +249,6 @@ export const ParticipantsPage: React.FC = () => {
             onSearchChange={setSearchQuery}
             activeStatus={activeStatus}
             onStatusChange={setActiveStatus}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
             counts={counts}
           />
         </CardContent>
@@ -360,18 +354,6 @@ export const ParticipantsPage: React.FC = () => {
               value={createForm.role}
               onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
             />
-            <label className="space-y-1.5 text-xs font-medium text-slate-300">
-              Category
-              <select
-                value={createForm.category}
-                onChange={(event) => setCreateForm({ ...createForm, category: event.target.value })}
-                className="w-full rounded-lg border border-slate-700/80 bg-[#080f21] px-3.5 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none"
-              >
-                {['hacker', 'mentor', 'judge', 'organizer', 'volunteer', 'vip'].map((category) => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-            </label>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} disabled={isCreating}>
@@ -391,7 +373,6 @@ export const ParticipantsPage: React.FC = () => {
             <Input label="Email" type="email" value={createForm.email} onChange={(event) => setCreateForm({ ...createForm, email: event.target.value })} />
             <Input label="Phone" value={createForm.phone} onChange={(event) => setCreateForm({ ...createForm, phone: event.target.value })} />
             <Input label="Role" required value={createForm.role} onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })} />
-            <label className="space-y-1.5 text-xs font-medium text-slate-300">Category<select value={createForm.category} onChange={(event) => setCreateForm({ ...createForm, category: event.target.value })} className="w-full rounded-lg border border-slate-700/80 bg-[#080f21] px-3.5 py-2 text-sm text-slate-100">{['hacker', 'mentor', 'judge', 'organizer', 'volunteer', 'vip'].map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
           </div>
           <div className="flex justify-end gap-2"><Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)}>Cancel</Button><Button type="submit" isLoading={isCreating}>Save changes</Button></div>
         </form>

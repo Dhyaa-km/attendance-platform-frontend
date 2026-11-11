@@ -9,7 +9,7 @@ function mapParticipant(participant: Record<string, unknown>): Participant {
     fullName: String(participant.fullName ?? ""),
     email: String(participant.email ?? ""),
     phone: typeof participant.phone === "string" ? participant.phone : undefined,
-    category: participant.category as Participant["category"],
+    role: String(participant.role ?? "participant"),
     status: participant.status as Participant["status"],
     qrCode: String(participant.qrCode ?? participant.token ?? ""),
   };
@@ -22,11 +22,11 @@ function mapResult(result: ScanVerificationResult): ScanVerificationResult {
 }
 
 export const apiScanService: ScanService = {
-  async verifyAndProcessCode(qrCode, mode, organizerId, organizerName) {
+  async verifyAndProcessCode(qrCode, _mode, organizerId, organizerName) {
     try {
       const response = await apiClient.post<ScanVerificationResult>("/attendance/scan", {
         token: qrCode,
-        mode: mode === "check-in" ? "ENTRY" : "EXIT",
+        mode: "AUTO",
         organizerId,
         organizerName,
       });

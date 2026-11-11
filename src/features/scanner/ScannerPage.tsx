@@ -3,19 +3,15 @@ import { Link } from 'react-router-dom';
 import { CameraViewfinder } from './components/CameraViewfinder.tsx';
 import { ManualCodeInput } from './components/ManualCodeInput.tsx';
 import { ScanResultModal } from './components/ScanResultModal.tsx';
-import { Tabs } from '../../components/ui/Tabs.tsx';
 import { Button } from '../../components/ui/Button.tsx';
-import { Badge } from '../../components/ui/Badge.tsx';
 import { useAuthStore } from '../../stores/useAuthStore.ts';
 import { useAppStore } from '../../stores/useAppStore.ts';
 import { scanService } from './services/scanService.ts';
 import { playScanFeedback } from './utils/audioFeedback.ts';
-import type { AttendanceAction, ScanVerificationResult } from '../../types/attendance.ts';
+import type { ScanVerificationResult } from '../../types/attendance.ts';
 import { APP_ROUTES } from '../../utils/constants.ts';
 import {
   ArrowLeft,
-  LogIn,
-  LogOut,
   QrCode,
   Volume2,
   VolumeX,
@@ -25,7 +21,6 @@ export const ScannerPage: React.FC = () => {
   const { organizer } = useAuthStore();
   const { soundEnabled, toggleSound } = useAppStore();
 
-  const [scanMode, setScanMode] = useState<AttendanceAction>('check-in');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [scanResult, setScanResult] = useState<ScanVerificationResult | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -42,7 +37,7 @@ export const ScannerPage: React.FC = () => {
 
       const result = await scanService.verifyAndProcessCode(
         rawCode,
-        scanMode,
+        'check-in',
         organizerId,
         organizerName
       );
@@ -62,7 +57,7 @@ export const ScannerPage: React.FC = () => {
       // In case of unexpected verification error
       const fallbackResult: ScanVerificationResult = {
         status: 'error',
-        action: scanMode,
+        action: 'check-in',
         message: 'Scanner Engine Error',
         explanation: 'An unexpected error occurred while parsing the token.',
         rawCode,
@@ -104,9 +99,6 @@ export const ScannerPage: React.FC = () => {
                 <QrCode className="w-5 h-5 text-cyan-400" />
                 <span>QR Attendance Scanner</span>
               </h1>
-              <Badge variant="telemetry" withDot pulseDot className="text-[10px]">
-                {scanMode.toUpperCase()}
-              </Badge>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
               Hold participant QR code within viewfinder. Gate operator: <span className="text-slate-200 font-medium">{organizer?.name || 'Authorized Crew'}</span>
@@ -114,7 +106,7 @@ export const ScannerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Mode Toggle & Audio Controls */}
+        {/* Audio Controls */}
         <div className="flex items-center gap-3">
           {/* Sound Toggle */}
           <button
@@ -131,15 +123,6 @@ export const ScannerPage: React.FC = () => {
             )}
           </button>
 
-          {/* Mode Switch: Check-In vs Check-Out */}
-          <Tabs
-            tabs={[
-              { id: 'check-in', label: 'Check-In', icon: <LogIn className="w-3.5 h-3.5" /> },
-              { id: 'check-out', label: 'Check-Out', icon: <LogOut className="w-3.5 h-3.5" /> },
-            ]}
-            activeTab={scanMode}
-            onChange={(tab) => setScanMode(tab as AttendanceAction)}
-          />
         </div>
       </div>
 

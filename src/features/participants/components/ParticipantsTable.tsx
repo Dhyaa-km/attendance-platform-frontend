@@ -112,7 +112,7 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                             </span>
                             <span>•</span>
                             <span className="uppercase text-[10px] font-telemetry text-slate-400">
-                              {p.role || p.category}
+                              {p.role}
                             </span>
                           </div>
                         </div>
@@ -240,7 +240,7 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-telemetry text-slate-400">
                 <div className="flex items-center gap-1 text-[11px]">
                   <span>Role:</span>
-                  <span className="uppercase text-slate-200 font-semibold">{p.role || p.category}</span>
+                  <span className="uppercase text-slate-200 font-semibold">{p.role}</span>
                 </div>
 
                 <Button

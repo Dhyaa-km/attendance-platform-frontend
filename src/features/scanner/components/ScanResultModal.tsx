@@ -105,7 +105,7 @@ export const ScanResultModal: React.FC<ScanResultModalProps> = ({
                 </span>
               </div>
               <Badge variant="telemetry" className="text-[10px]">
-                {result.participant.category.toUpperCase()}
+                {result.participant.role.toUpperCase()}
               </Badge>
             </div>
 
