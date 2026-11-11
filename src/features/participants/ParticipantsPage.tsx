@@ -41,6 +41,9 @@ export const ParticipantsPage: React.FC = () => {
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importRole, setImportRole] = useState('participant');
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -101,15 +104,16 @@ export const ParticipantsPage: React.FC = () => {
     setSelectedParticipant(null);
   };
 
-  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
+  const handleImport = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!importFile || !importRole.trim()) return;
     setIsImporting(true);
     setImportMessage(null);
     try {
-      const result = await participantService.importCsv(file);
+      const result = await participantService.importCsv(importFile, importRole.trim());
       setImportMessage(`Imported ${result.imported} participants. ${result.duplicates} duplicates and ${result.invalid} invalid rows.`);
+      setIsImportOpen(false);
+      setImportFile(null);
       setLoadAttempt((attempt) => attempt + 1);
     } catch (error) {
       const message = axios.isAxiosError(error)
@@ -295,11 +299,18 @@ export const ParticipantsPage: React.FC = () => {
           >
             Download QR PDF
           </Button>
-          <label className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 cursor-pointer">
-            <Upload className="w-4 h-4" />
-            {isImporting ? 'Importing...' : 'Upload CSV'}
-            <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleImport} disabled={isImporting} />
-          </label>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            leftIcon={<Upload className="w-4 h-4" />}
+            onClick={() => {
+              setImportMessage(null);
+              setIsImportOpen(true);
+            }}
+          >
+            Upload CSV
+          </Button>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#070e20] border border-slate-800 text-xs font-telemetry text-slate-300">
             <Database className="w-3.5 h-3.5 text-cyan-400" />
             <span>Roster Synchronized</span>
@@ -313,6 +324,43 @@ export const ParticipantsPage: React.FC = () => {
           {exportError && <Alert type="error" title="PDF EXPORT">{exportError}</Alert>}
         </div>
       </div>
+
+      <Dialog
+        isOpen={isImportOpen}
+        onClose={() => {
+          if (!isImporting) setIsImportOpen(false);
+        }}
+        title="Upload participants"
+        description="Choose a role that will be assigned to every participant in this CSV file."
+        maxWidth="md"
+      >
+        <form onSubmit={handleImport} className="space-y-4">
+          <Input
+            label="Role"
+            required
+            placeholder="Guest, VIP, participant..."
+            value={importRole}
+            onChange={(event) => setImportRole(event.target.value)}
+            disabled={isImporting}
+          />
+          <Input
+            label="CSV file"
+            type="file"
+            accept=".csv,text/csv"
+            required
+            onChange={(event) => setImportFile(event.target.files?.[0] ?? null)}
+            disabled={isImporting}
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setIsImportOpen(false)} disabled={isImporting}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={isImporting} leftIcon={<Upload className="w-4 h-4" />}>
+              Import participants
+            </Button>
+          </div>
+        </form>
+      </Dialog>
 
       {/* 2. Search & Filters Card */}
       <Card hudCorner className="bg-[#0b1328]/90 border-slate-800/80">

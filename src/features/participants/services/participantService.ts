@@ -61,7 +61,7 @@ export interface ParticipantService {
   getParticipants(filters?: ParticipantFilterParams): Promise<Participant[]>;
   getParticipantById(id: string): Promise<Participant | null>;
   getParticipantCounts(): Promise<ParticipantCounts>;
-  importCsv(file: File): Promise<ParticipantImportResult>;
+  importCsv(file: File, role: string): Promise<ParticipantImportResult>;
   getParticipantQr(id: string): Promise<ParticipantQrResult>;
   createParticipant(input: CreateParticipantInput): Promise<ParticipantQrResult>;
   updateParticipant(id: string, input: CreateParticipantInput): Promise<Participant>;
@@ -96,9 +96,10 @@ export const participantService: ParticipantService = {
       pending: participants.filter((participant) => participant.status === 'pending').length,
     };
   },
-  async importCsv(file) {
+  async importCsv(file, role) {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('role', role);
     const response = await apiClient.post<{ data: Omit<ParticipantImportResult, 'participants'> & { participants: ApiParticipant[] } }>(
       '/participants/import',
       formData,
