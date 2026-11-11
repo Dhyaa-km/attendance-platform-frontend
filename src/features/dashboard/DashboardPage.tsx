@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MainScanningAction } from './components/MainScanningAction.tsx';
 import { AttendanceStatCards } from './components/AttendanceStatCards.tsx';
-import { AttendanceProgress } from './components/AttendanceProgress.tsx';
 import { RecentActivitySummary } from './components/RecentActivitySummary.tsx';
 import { dashboardService } from './services/dashboardService.ts';
 import type { DashboardStats, AttendanceRecord } from '../../types/attendance.ts';
@@ -72,7 +71,6 @@ export const DashboardPage: React.FC = () => {
       <AttendanceStatCards stats={stats} />
 
       <div className="space-y-6">
-          <AttendanceProgress stats={stats} />
           <RecentActivitySummary records={recentRecords} />
       </div>
     </div>
