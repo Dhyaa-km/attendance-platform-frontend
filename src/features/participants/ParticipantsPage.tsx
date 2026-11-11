@@ -12,10 +12,11 @@ import {
   type ParticipantCounts,
 } from './services/participantService.ts';
 import type { Participant } from '../../types/participant.ts';
-import { Users, Database, Shield, Upload, UserPlus } from 'lucide-react';
+import { Users, Database, Shield, Upload, UserPlus, Download } from 'lucide-react';
 import { Dialog } from '../../components/ui/Dialog.tsx';
 import { Input } from '../../components/ui/Input.tsx';
 import axios from 'axios';
+import { jsPDF } from 'jspdf';
 
 export const ParticipantsPage: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -40,6 +41,8 @@ export const ParticipantsPage: React.FC = () => {
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -188,6 +191,65 @@ export const ParticipantsPage: React.FC = () => {
     }
   };
 
+  const handleDownloadParticipantTickets = async () => {
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const allParticipants = await participantService.getParticipants();
+      if (allParticipants.length === 0) {
+        setExportError('There are no participants to export.');
+        return;
+      }
+
+      const tickets = await Promise.all(
+        allParticipants.map(async (participant) => ({
+          participant,
+          qrCodeDataUrl: (await participantService.getParticipantQr(participant.id)).qrCodeDataUrl,
+        })),
+      );
+      const document = new jsPDF({ format: 'a4', unit: 'mm' });
+      const pageWidth = document.internal.pageSize.getWidth();
+      const pageHeight = document.internal.pageSize.getHeight();
+
+      tickets.forEach(({ participant, qrCodeDataUrl }, index) => {
+        if (index > 0) document.addPage();
+
+        document.setFillColor(7, 14, 32);
+        document.rect(0, 0, pageWidth, pageHeight, 'F');
+        document.setTextColor(255, 255, 255);
+        document.setFontSize(22);
+        document.text('Attendance Participant Ticket', pageWidth / 2, 32, { align: 'center' });
+        document.setDrawColor(34, 211, 238);
+        document.line(25, 42, pageWidth - 25, 42);
+
+        document.setFontSize(16);
+        document.text(participant.fullName || 'Unnamed participant', pageWidth / 2, 62, { align: 'center' });
+        document.setTextColor(203, 213, 225);
+        document.setFontSize(12);
+        document.text(`Email: ${participant.email || 'Not provided'}`, pageWidth / 2, 76, { align: 'center' });
+        document.text(`Role: ${participant.role || 'Not specified'}`, pageWidth / 2, 88, { align: 'center' });
+
+        const qrSize = 110;
+        const qrX = (pageWidth - qrSize) / 2;
+        document.addImage(qrCodeDataUrl, 'PNG', qrX, 102, qrSize, qrSize);
+        document.setTextColor(148, 163, 184);
+        document.setFontSize(10);
+        document.text('Scan this QR code to record attendance', pageWidth / 2, 228, { align: 'center' });
+      });
+
+      document.save('participant-qr-tickets.pdf');
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message ?? error.message
+        : error instanceof Error
+          ? error.message
+          : 'The participant PDF could not be generated.';
+      setExportError(message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Page Header */}
@@ -223,6 +285,16 @@ export const ParticipantsPage: React.FC = () => {
           >
             Add Participant
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            leftIcon={<Download className="w-4 h-4" />}
+            onClick={handleDownloadParticipantTickets}
+            isLoading={isExporting}
+          >
+            Download QR PDF
+          </Button>
           <label className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 cursor-pointer">
             <Upload className="w-4 h-4" />
             {isImporting ? 'Importing...' : 'Upload CSV'}
@@ -238,6 +310,7 @@ export const ParticipantsPage: React.FC = () => {
               {importMessage}
             </Alert>
           )}
+          {exportError && <Alert type="error" title="PDF EXPORT">{exportError}</Alert>}
         </div>
       </div>
 
