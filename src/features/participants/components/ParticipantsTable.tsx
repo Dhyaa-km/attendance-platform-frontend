@@ -17,6 +17,7 @@ import {
   Clock,
   Eye,
   QrCode,
+  Download,
   SearchX,
   Users,
 } from 'lucide-react';
@@ -25,6 +26,7 @@ interface ParticipantsTableProps {
   participants: Participant[];
   onSelectParticipant: (participant: Participant) => void;
   onShowQr: (participant: Participant) => void;
+  onDownloadPdf: (participant: Participant) => void;
   onEditParticipant: (participant: Participant) => void;
   onDeleteParticipant: (participant: Participant) => void;
   isLoading: boolean;
@@ -35,6 +37,7 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   participants,
   onSelectParticipant,
   onShowQr,
+  onDownloadPdf,
   onEditParticipant,
   onDeleteParticipant,
   isLoading,
@@ -201,6 +204,19 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                       >
                         QR
                       </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDownloadPdf(p);
+                        }}
+                        leftIcon={<Download className="w-3.5 h-3.5" />}
+                        className="text-amber-300 hover:text-amber-200"
+                      >
+                        PDF
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
@@ -266,6 +282,18 @@ export const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                   leftIcon={<QrCode className="w-3 h-3" />}
                 >
                   QR
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDownloadPdf(p);
+                  }}
+                  leftIcon={<Download className="w-3 h-3" />}
+                >
+                  PDF
                 </Button>
               </div>
             </Card>

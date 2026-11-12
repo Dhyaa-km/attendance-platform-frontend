@@ -46,6 +46,9 @@ export const ParticipantsPage: React.FC = () => {
   const [importRole, setImportRole] = useState('participant');
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isPdfOptionsOpen, setIsPdfOptionsOpen] = useState(false);
+  const [isJsonOptionsOpen, setIsJsonOptionsOpen] = useState(false);
+  const [exportRole, setExportRole] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -195,13 +198,63 @@ export const ParticipantsPage: React.FC = () => {
     }
   };
 
+  const getExportParticipants = async (role: string) => {
+    const allParticipants = await participantService.getParticipants();
+    const normalizedRole = role.trim().toLowerCase();
+    return normalizedRole === 'all'
+      ? allParticipants
+      : allParticipants.filter((participant) => participant.role.trim().toLowerCase() === normalizedRole);
+  };
+
+  const safeFilename = (value: string) =>
+    value.trim().replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_') || 'participant';
+
+  const addParticipantPage = (document: jsPDF, participant: Participant, qr: string) => {
+    const pageWidth = document.internal.pageSize.getWidth();
+    const pageHeight = document.internal.pageSize.getHeight();
+
+    document.setFillColor(7, 14, 32);
+    document.rect(0, 0, pageWidth, pageHeight, 'F');
+    document.setTextColor(255, 255, 255);
+    document.setFontSize(22);
+    document.text('Attendance Participant Ticket', pageWidth / 2, 32, { align: 'center' });
+    document.setDrawColor(34, 211, 238);
+    document.line(25, 42, pageWidth - 25, 42);
+    document.setFontSize(16);
+    document.text(participant.fullName || 'Unnamed participant', pageWidth / 2, 62, { align: 'center' });
+    document.setTextColor(203, 213, 225);
+    document.setFontSize(12);
+    document.text(`Email: ${participant.email || 'Not provided'}`, pageWidth / 2, 76, { align: 'center' });
+    document.text(`Role: ${participant.role || 'Not specified'}`, pageWidth / 2, 88, { align: 'center' });
+    const qrSize = 110;
+    document.addImage(qr, 'PNG', (pageWidth - qrSize) / 2, 102, qrSize, qrSize);
+    document.setTextColor(148, 163, 184);
+    document.setFontSize(10);
+    document.text('Scan this QR code to record attendance', pageWidth / 2, 228, { align: 'center' });
+  };
+
+  const handleDownloadParticipantPdf = async (participant: Participant) => {
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const qr = (await participantService.getParticipantQr(participant.id)).qrCodeDataUrl;
+      const document = new jsPDF({ format: 'a4', unit: 'mm' });
+      addParticipantPage(document, participant, qr);
+      document.save(`${safeFilename(participant.fullName)}.pdf`);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : 'The participant PDF could not be generated.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleDownloadParticipantTickets = async () => {
     setIsExporting(true);
     setExportError(null);
     try {
-      const allParticipants = await participantService.getParticipants();
+      const allParticipants = await getExportParticipants(exportRole);
       if (allParticipants.length === 0) {
-        setExportError('There are no participants to export.');
+        setExportError(`There are no participants with the role "${exportRole}".`);
         return;
       }
 
@@ -212,35 +265,10 @@ export const ParticipantsPage: React.FC = () => {
         })),
       );
       const document = new jsPDF({ format: 'a4', unit: 'mm' });
-      const pageWidth = document.internal.pageSize.getWidth();
-      const pageHeight = document.internal.pageSize.getHeight();
-
       tickets.forEach(({ participant, qrCodeDataUrl }, index) => {
         if (index > 0) document.addPage();
-
-        document.setFillColor(7, 14, 32);
-        document.rect(0, 0, pageWidth, pageHeight, 'F');
-        document.setTextColor(255, 255, 255);
-        document.setFontSize(22);
-        document.text('Attendance Participant Ticket', pageWidth / 2, 32, { align: 'center' });
-        document.setDrawColor(34, 211, 238);
-        document.line(25, 42, pageWidth - 25, 42);
-
-        document.setFontSize(16);
-        document.text(participant.fullName || 'Unnamed participant', pageWidth / 2, 62, { align: 'center' });
-        document.setTextColor(203, 213, 225);
-        document.setFontSize(12);
-        document.text(`Email: ${participant.email || 'Not provided'}`, pageWidth / 2, 76, { align: 'center' });
-        document.text(`Role: ${participant.role || 'Not specified'}`, pageWidth / 2, 88, { align: 'center' });
-
-        const qrSize = 110;
-        const qrX = (pageWidth - qrSize) / 2;
-        document.addImage(qrCodeDataUrl, 'PNG', qrX, 102, qrSize, qrSize);
-        document.setTextColor(148, 163, 184);
-        document.setFontSize(10);
-        document.text('Scan this QR code to record attendance', pageWidth / 2, 228, { align: 'center' });
+        addParticipantPage(document, participant, qrCodeDataUrl);
       });
-
       document.save('participant-qr-tickets.pdf');
     } catch (error) {
       const message = axios.isAxiosError(error)
@@ -249,6 +277,36 @@ export const ParticipantsPage: React.FC = () => {
           ? error.message
           : 'The participant PDF could not be generated.';
       setExportError(message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadParticipantJson = async () => {
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const selectedParticipants = await getExportParticipants(exportRole);
+      if (selectedParticipants.length === 0) {
+        setExportError(`There are no participants with the role "${exportRole}".`);
+        return;
+      }
+      const payload = selectedParticipants.map(({ fullName, email, role, qrCode }) => ({
+        name: fullName,
+        email,
+        role,
+        token: qrCode,
+      }));
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `participants-${safeFilename(exportRole)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setIsJsonOptionsOpen(false);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : 'The participant JSON could not be generated.');
     } finally {
       setIsExporting(false);
     }
@@ -294,10 +352,17 @@ export const ParticipantsPage: React.FC = () => {
             variant="outline"
             size="sm"
             leftIcon={<Download className="w-4 h-4" />}
-            onClick={handleDownloadParticipantTickets}
-            isLoading={isExporting}
+            onClick={() => setIsPdfOptionsOpen(true)}
           >
             Download QR PDF
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsJsonOptionsOpen(true)}
+          >
+            Download JSON
           </Button>
           <Button
             type="button"
@@ -362,6 +427,75 @@ export const ParticipantsPage: React.FC = () => {
         </form>
       </Dialog>
 
+      <Dialog
+        isOpen={isPdfOptionsOpen}
+        onClose={() => {
+          if (!isExporting) setIsPdfOptionsOpen(false);
+        }}
+        title="Download QR PDF"
+        description="Export one ticket page per participant. Choose all participants or enter an exact role."
+        maxWidth="md"
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            setIsPdfOptionsOpen(false);
+            void handleDownloadParticipantTickets();
+          }}
+          className="space-y-4"
+        >
+          <Input
+            label="Role"
+            helperText='Use "all" to export every participant, or enter an exact role such as "Mentor".'
+            value={exportRole}
+            onChange={(event) => setExportRole(event.target.value)}
+            disabled={isExporting}
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setIsPdfOptionsOpen(false)} disabled={isExporting}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={isExporting} leftIcon={<Download className="w-4 h-4" />}>
+              Download PDF
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+
+      <Dialog
+        isOpen={isJsonOptionsOpen}
+        onClose={() => {
+          if (!isExporting) setIsJsonOptionsOpen(false);
+        }}
+        title="Download participant JSON"
+        description="Export name, email, role, and the exact QR token used by the scanner."
+        maxWidth="md"
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleDownloadParticipantJson();
+          }}
+          className="space-y-4"
+        >
+          <Input
+            label="Role"
+            helperText='Use "all" to export every participant, or enter an exact role such as "Mentor".'
+            value={exportRole}
+            onChange={(event) => setExportRole(event.target.value)}
+            disabled={isExporting}
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setIsJsonOptionsOpen(false)} disabled={isExporting}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={isExporting} leftIcon={<Download className="w-4 h-4" />}>
+              Download JSON
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+
       {/* 2. Search & Filters Card */}
       <Card hudCorner className="bg-[#0b1328]/90 border-slate-800/80">
         <CardContent className="p-4 sm:p-5">
@@ -409,6 +543,7 @@ export const ParticipantsPage: React.FC = () => {
           participants={participants}
           onSelectParticipant={handleOpenDetails}
           onShowQr={handleShowQr}
+          onDownloadPdf={handleDownloadParticipantPdf}
           onEditParticipant={handleEditParticipant}
           onDeleteParticipant={handleDeleteParticipant}
           isLoading={isLoading}
